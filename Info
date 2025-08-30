@@ -1,0 +1,66 @@
+#This bot is developed by Hayder A.
+#Developer Channel | @xlxl9 ✓.
+
+import telebot
+import instaloader
+from datetime import datetime
+from telebot import types
+import requests
+
+token = "8293018809:AAHb0t646Vhd11lztqw1EPgjTQiSXUfOWNM"  #TOKEN
+bot = telebot.TeleBot(token)
+
+@bot.message_handler(commands=["start"])
+def start(message):
+    markup = types.InlineKeyboardMarkup()
+    tiktok_button = types.InlineKeyboardButton("- تيكتوك 🖤.", callback_data="tiktok")
+    instagram_button = types.InlineKeyboardButton("- إنستغرام 🩷.", callback_data="instagram")
+    developer_channel_button = types.InlineKeyboardButton("- قناة المطور 🧑🏻‍💻.", url="https://t.me/xlxl9")
+    markup.add(tiktok_button, instagram_button)
+    markup.add(developer_channel_button)
+    bot.reply_to(message, "*- مرحباً بك عزيزي في بوت معرفة معلومات الحساب ✅\n\n- اختر القسم الذي تريده من الاسفل لبدء استخراج المعلومات 🔥 .*", parse_mode='Markdown',reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data in ["tiktok", "instagram"])
+def platform_callback(call):
+    chat_id = call.message.chat.id
+    if call.data == "tiktok":
+        bot.send_message(chat_id, "*- حسناً يرجى ارسال يوزر الحساب على التيكتوك لارسال معلوماتة اليك ✅*",parse_mode='Markdown')
+    elif call.data == "instagram":
+        bot.send_message(chat_id, "*- حسناً يرجى ارسال يوزر الحساب على الانستغرام لارسال معلوماتة اليك ✅*",parse_mode='Markdown')
+    bot.register_next_step_handler(call.message, process_username, call.data)
+
+def process_username(message, platform):
+    chat_id = message.chat.id
+    username = message.text
+
+    if platform == "tiktok":
+        url = requests.get(f'https://tiktokinfo--jts5.repl.co/TikTok-info?username={username}').text
+        bot.send_message(chat_id, url)
+    elif platform == "instagram":
+        Lev = instaloader.Instaloader()
+        profile = instaloader.Profile.from_username(Lev.context, username)
+        
+        name = profile.full_name
+        fols = profile.followers
+        folg = profile.followees
+        bio = profile.biography
+        pr = profile.is_private
+        pic = profile.profile_pic_url
+        
+        external_url = profile.external_url
+        
+        response = requests.get(f"https://www.instagram.com/{username}/?__a=1")
+        try:
+            response_json = response.json()
+            created_at = datetime.fromtimestamp(response_json["graphql"]["user"]["created_at"]).strftime('%Y-%m-%d %H:%M:%S')
+        except (requests.exceptions.JSONDecodeError, KeyError):
+            created_at = "غير متاح"
+        
+        info_message = (f"الاسم: {name}\nمتابعين: {fols}\nخاص: {pr}\nمتابعة: {folg}\nنبذة: {bio}\nتاريخ الإنشاء: {created_at}")
+        bot.send_photo(chat_id, pic, info_message)
+
+print('- @xlxl9 ✓')
+#This bot is developed by Hayder.A
+#Developer Channel | @xlxl9 ✓.
+
+bot.polling()
